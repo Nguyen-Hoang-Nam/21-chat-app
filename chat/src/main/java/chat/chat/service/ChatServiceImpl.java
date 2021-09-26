@@ -1,11 +1,5 @@
 package chat.chat.service;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Service;
-
 import chat.chat.mapper.IChatMapper;
 import chat.chat.mapper.IMessageMapper;
 import chat.chat.model.dto.ChatDTO;
@@ -19,16 +13,21 @@ import chat.chat.model.entity.UserEntity;
 import chat.chat.repository.IChatRepository;
 import chat.chat.repository.IUserRepository;
 import chat.chat.util.JwtUtil;
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
 
 @Service
 public class ChatServiceImpl implements IChatService {
-    IChatRepository chatRepository;
 
-    IUserRepository userRepository;
+    private IChatRepository chatRepository;
 
-    IMessageMapper messageMapper;
+    private IUserRepository userRepository;
 
-    IChatMapper chatMapper;
+    private IMessageMapper messageMapper;
+
+    private IChatMapper chatMapper;
 
     private JwtUtil jwtUtil;
 
@@ -36,13 +35,31 @@ public class ChatServiceImpl implements IChatService {
      * @param chatRepository
      * @param mapper
      */
-    public ChatServiceImpl(IChatRepository chatRepository, IUserRepository userRepository, IChatMapper chatMapper,
-            IMessageMapper messageMapper, JwtUtil jwtUtil) {
+    public ChatServiceImpl(
+        IChatRepository chatRepository,
+        IUserRepository userRepository,
+        IChatMapper chatMapper,
+        IMessageMapper messageMapper,
+        JwtUtil jwtUtil
+    ) {
         this.chatRepository = chatRepository;
         this.userRepository = userRepository;
         this.chatMapper = chatMapper;
         this.messageMapper = messageMapper;
         this.jwtUtil = jwtUtil;
+    }
+
+    private Boolean checkUserInChatroom(
+        ArrayList<ChatUserEntity> chatUserEntities,
+        String userId
+    ) {
+        for (ChatUserEntity chatUserEntity : chatUserEntities) {
+            if (chatUserEntity.getId().equals(userId)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override
@@ -51,13 +68,15 @@ public class ChatServiceImpl implements IChatService {
 
         String userId = jwtUtil.parseToken(token);
         UserEntity userEntity = userRepository.findUserById(userId);
-
         if (userEntity == null) {
             throw new UsernameNotFoundException(userId);
         }
 
         ArrayList<ChatUserEntity> chatUserEntities = new ArrayList<ChatUserEntity>();
-        ChatUserEntity chatUserEntity = new ChatUserEntity(userId, userEntity.getUsername());
+        ChatUserEntity chatUserEntity = new ChatUserEntity(
+            userId,
+            userEntity.getUsername()
+        );
 
         chatUserEntities.add(chatUserEntity);
 
@@ -67,7 +86,10 @@ public class ChatServiceImpl implements IChatService {
 
         userEntity.setLastChatId(newChatId);
 
-        UserChatEntity userChatEntity = new UserChatEntity(newChatId, chatEntity.getChatName());
+        UserChatEntity userChatEntity = new UserChatEntity(
+            newChatId,
+            chatEntity.getChatName()
+        );
         ArrayList<UserChatEntity> userChatEntities = userEntity.getUserChatEntities();
 
         if (userChatEntities == null) {
@@ -81,41 +103,69 @@ public class ChatServiceImpl implements IChatService {
     }
 
     @Override
-    public String addUserById(String chatId, String userId) {
+    public String addUserById(String token, String chatId, String userId) {
+        // Check current user existed
+        String currentUserId = jwtUtil.parseToken(token);
+        UserEntity currentUserEntity = userRepository.findUserById(userId);
+        if (currentUserEntity == null) {
+            throw new UsernameNotFoundException(currentUserId);
+        }
+
+        // Get current chatroom
+        ChatEntity chatEntity = chatRepository.findById(chatId).orElse(null);
+        if (chatEntity == null) {
+            throw new IllegalStateException("Chat room not found");
+        }
+
+        // Check current user in this chatroom
+        ArrayList<ChatUserEntity> chatUserEntities = chatEntity.getChatUserEntities();
+
+        Boolean foundCurrentUser = checkUserInChatroom(
+            chatUserEntities,
+            currentUserId
+        );
+        if (!foundCurrentUser) {
+            throw new IllegalStateException("User not found in chatroom");
+        }
+
+        // Check new user existed
         UserEntity userEntity = userRepository.findById(userId).orElse(null);
         if (userEntity == null) {
             throw new IllegalStateException("User not found");
         }
 
-        // Add user to chat
-        ChatEntity chatEntity = chatRepository.findById(chatId).orElse(null);
-
-        if (chatEntity == null) {
-            throw new IllegalStateException("Chat room not found");
+        // Check current user in this chatroom
+        Boolean foundNewUser = checkUserInChatroom(chatUserEntities, userId);
+        if (foundNewUser) {
+            throw new IllegalStateException("New user found in chatroom");
         }
 
-        ChatUserEntity chatUserEntity = new ChatUserEntity(userId, userEntity.getUsername());
-
-        ArrayList<ChatUserEntity> chatUserEntities = chatEntity.getChatUserEntities();
-
+        // Add new user to chatroom
+        chatUserEntities = chatEntity.getChatUserEntities();
         if (chatUserEntities == null) {
             chatUserEntities = new ArrayList<ChatUserEntity>();
         }
+
+        ChatUserEntity chatUserEntity = new ChatUserEntity(
+            userId,
+            userEntity.getUsername()
+        );
 
         chatUserEntities.add(chatUserEntity);
         chatEntity.setChatUserEntities(chatUserEntities);
 
         chatRepository.save(chatEntity);
 
-        // Add chat to user
-        userEntity.setLastChatId(chatId);
-
-        UserChatEntity userChatEntity = new UserChatEntity(chatId, chatEntity.getChatName());
+        // Add chatroom to new user
         ArrayList<UserChatEntity> userChatEntities = userEntity.getUserChatEntities();
-
         if (userChatEntities == null) {
             userChatEntities = new ArrayList<UserChatEntity>();
         }
+
+        UserChatEntity userChatEntity = new UserChatEntity(
+            chatId,
+            chatEntity.getChatName()
+        );
 
         userChatEntities.add(userChatEntity);
         userEntity.setUserChatEntities(userChatEntities);
@@ -129,28 +179,21 @@ public class ChatServiceImpl implements IChatService {
         String userId = jwtUtil.parseToken(token);
 
         ChatEntity chatEntity = chatRepository.findById(chatId).orElse(null);
-
         if (chatEntity == null) {
             throw new IllegalStateException("Chat room not found");
         }
 
-        List<ChatUserEntity> chatUserEntities = chatEntity.getChatUserEntities();
+        ArrayList<ChatUserEntity> chatUserEntities = chatEntity.getChatUserEntities();
 
-        Boolean foundUser = false;
-        for (ChatUserEntity chatUserEntity : chatUserEntities) {
-
-            if (chatUserEntity.getId().equals(userId)) {
-                foundUser = true;
-                break;
-            }
-        }
-
+        Boolean foundUser = checkUserInChatroom(chatUserEntities, userId);
         if (!foundUser) {
             throw new IllegalStateException("User not found in chatroom");
         }
 
         List<MessageEntity> messageEntities = chatEntity.getMessageEntities();
-        List<MessageDTO> messageDTOs = messageMapper.messageEntitiesToMessageDtos(messageEntities);
+        List<MessageDTO> messageDTOs = messageMapper.messageEntitiesToMessageDtos(
+            messageEntities
+        );
 
         return messageDTOs;
     }
@@ -160,22 +203,13 @@ public class ChatServiceImpl implements IChatService {
         String userId = jwtUtil.parseToken(token);
 
         ChatEntity chatEntity = chatRepository.findById(chatId).orElse(null);
-
         if (chatEntity == null) {
             throw new IllegalStateException("Chat room not found");
         }
 
-        List<ChatUserEntity> chatUserEntities = chatEntity.getChatUserEntities();
+        ArrayList<ChatUserEntity> chatUserEntities = chatEntity.getChatUserEntities();
 
-        Boolean foundUser = false;
-        for (ChatUserEntity chatUserEntity : chatUserEntities) {
-
-            if (chatUserEntity.getId().equals(userId)) {
-                foundUser = true;
-                break;
-            }
-        }
-
+        Boolean foundUser = checkUserInChatroom(chatUserEntities, userId);
         if (!foundUser) {
             throw new IllegalStateException("User not found in chatroom");
         }
@@ -191,16 +225,16 @@ public class ChatServiceImpl implements IChatService {
             throw new IllegalStateException("Chat room not found");
         }
 
-        MessageEntity messageEntity = messageMapper.messageDtoToMessageEntity(messageDTO);
-
         ArrayList<MessageEntity> messageEntities = chatEntity.getMessageEntities();
         if (messageEntities == null) {
             messageEntities = new ArrayList<MessageEntity>();
         }
 
+        MessageEntity messageEntity = messageMapper.messageDtoToMessageEntity(
+            messageDTO
+        );
         messageEntities.add(messageEntity);
         chatEntity.setMessageEntities(messageEntities);
-
         chatRepository.save(chatEntity);
     }
 }

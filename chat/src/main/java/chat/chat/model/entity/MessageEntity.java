@@ -1,17 +1,18 @@
 package chat.chat.model.entity;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 
 public class MessageEntity {
 
     @Id
     private String id;
+
     private String userId;
     private String username;
     private String content;
 
-    public MessageEntity() {
-    }
+    public MessageEntity() {}
 
     /**
      * @param userId
@@ -19,6 +20,7 @@ public class MessageEntity {
      * @param content
      */
     public MessageEntity(String userId, String username, String content) {
+        this.id = new ObjectId().toString();
         this.userId = userId;
         this.username = username;
         this.content = content;
@@ -30,7 +32,12 @@ public class MessageEntity {
      * @param username
      * @param content
      */
-    public MessageEntity(String id, String userId, String username, String content) {
+    public MessageEntity(
+        String id,
+        String userId,
+        String username,
+        String content
+    ) {
         this.id = id;
         this.userId = userId;
         this.username = username;
@@ -92,5 +99,4 @@ public class MessageEntity {
     public void setContent(String content) {
         this.content = content;
     }
-
 }
