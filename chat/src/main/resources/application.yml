@@ -1,0 +1,13 @@
+login:
+  url:
+    path: /user/login
+
+spring:
+  data:
+    mongodb:
+      authentication-database: chat_app
+      username: user
+      password: pass
+      database: chat_app
+      port: 27017
+      host: localhost

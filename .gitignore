@@ -1,0 +1,18 @@
+.git/
+
+### Svelte ###
+.DS_Store
+node_modules/
+src/node_modules/@sapper/
+yarn-error.log
+__sapper__/
+
+### Spring ###
+HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+.classpath
+.project
