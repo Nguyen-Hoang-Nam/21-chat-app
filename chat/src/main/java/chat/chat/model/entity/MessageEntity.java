@@ -12,7 +12,9 @@ public class MessageEntity {
     private String username;
     private String content;
 
-    public MessageEntity() {}
+    public MessageEntity() {
+        this.id = new ObjectId().toString();
+    }
 
     /**
      * @param userId

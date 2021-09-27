@@ -5,7 +5,6 @@
     import { Client } from "@stomp/stompjs";
 
     import ListChatrooms from "../components/ListChatrooms.svelte";
-    import Sidebar from "../components/Sidebar.svelte";
     import Chatroom from "../components/Chatroom.svelte";
     import CreateChatroomModal from "../components/CreateChatroomModal.svelte";
 
@@ -22,6 +21,7 @@
 
     let currentChatName = "";
     let currentChatId = "";
+    let listChatroomOrder = [];
 
     let currentMessage = "";
 
@@ -34,10 +34,10 @@
     token.subscribe((value) => (jwtToken = value));
     authenticated.subscribe((value) => (authenticate = value));
 
-    const addNewMessage = (message, chatId) => {
+    const addNewMessage = async (message, chatId) => {
         const body = JSON.parse(message.body);
 
-        if (body.userId !== userId) {
+        if (chatContent[chatId]) {
             if (chatContent[chatId]["messageDTOs"]) {
                 chatContent[chatId]["messageDTOs"].push(body);
             } else {
@@ -45,7 +45,25 @@
             }
         }
 
+        if (listChatroomOrder[0]["id"] !== chatId) {
+            let currentChatByChatId = {};
+            let chatIdPosition = -1;
+            for (let i = 0; i < listChatroomOrder.length; i++) {
+                if (listChatroomOrder[i]["id"] === chatId) {
+                    currentChatByChatId = listChatroomOrder[i];
+                    chatIdPosition = i;
+                    break;
+                }
+            }
+
+            if (chatIdPosition !== -1) {
+                listChatroomOrder.splice(chatIdPosition, 1);
+                listChatroomOrder.unshift(currentChatByChatId);
+            }
+        }
+
         chatContent = chatContent;
+        listChatroomOrder = listChatroomOrder;
     };
 
     const sendMessage = (chatId) => {
@@ -57,26 +75,16 @@
 
         currentMessage = "";
 
-        // if (chatContent[chatId]["messageDTOs"]) {
-        //     chatContent[chatId]["messageDTOs"].push(instantMessage);
-        // } else {
-        //     chatContent[chatId]["messageDTOs"] = [instantMessage];
-        // }
-
-        // chatContent = chatContent;
-
-        console.log(chatContent);
-
         client.publish({
             destination: "/chat/message/" + chatId,
             body: JSON.stringify(instantMessage),
         });
     };
 
-    const fetchChatContent = async () => {
-        if (!Object.prototype.hasOwnProperty.call(chatContent, currentChatId)) {
+    const fetchChatContent = async (chatId) => {
+        if (!Object.prototype.hasOwnProperty.call(chatContent, chatId)) {
             const response = await fetch(
-                "http://localhost:8080/chat/get-chat/" + currentChatId,
+                "http://localhost:8080/chat/get-chat/" + chatId,
                 {
                     mode: "cors",
                     headers: {
@@ -90,9 +98,9 @@
                 .json()
                 .then((data) => {
                     console.log(data);
-                    chatContent[currentChatId] = data;
+                    chatContent[chatId] = data;
                 })
-                .catch(() => (chatContent[currentChatId] = []));
+                .catch(() => (chatContent[chatId] = []));
         }
     };
 
@@ -113,12 +121,13 @@
                     username = data["username"];
                     userId = data["id"];
                     if (data["userChatDTOs"]) {
+                        listChatroomOrder = [...data["userChatDTOs"]];
                         const currentChat = data["userChatDTOs"][0];
 
                         currentChatName = currentChat.chatName;
                         currentChatId = currentChat.id;
 
-                        await fetchChatContent();
+                        await fetchChatContent(currentChatId);
 
                         client = new Client({
                             brokerURL: "ws://localhost:8080/ws",
@@ -160,11 +169,36 @@
                 chatName,
             }),
         })
-            .then(async () => {
-                await fetchContent();
-                chatName = "";
-                showModal = false;
-            })
+            .then((res) =>
+                res.text().then(async (data) => {
+                    console.log(data);
+                    const userChatDTO = {
+                        id: data,
+                        chatName,
+                    };
+
+                    listChatroomOrder.push(userChatDTO);
+                    content["userChatDTOs"].push(userChatDTO);
+
+                    const chatDTO = {
+                        id: data,
+                        chatName,
+                        messageDTOs: null,
+                        chatUserDTOs: [
+                            {
+                                id: userId,
+                                username,
+                            },
+                        ],
+                    };
+
+                    chatContent[data] = chatDTO;
+
+                    chatName = "";
+                    showModal = false;
+                    content = content;
+                })
+            )
             .catch(async () => {
                 goto("/login");
             });
@@ -210,6 +244,8 @@
                     addNewMessage(message, content["userChatDTOs"][i]["id"])
             );
         }
+
+        clientAvaiable = false;
     }
 </script>
 
@@ -226,6 +262,7 @@
             bind:content
             bind:currentChatId
             bind:currentChatName
+            {listChatroomOrder}
             {fetchChatContent}
         />
 
@@ -235,13 +272,8 @@
             bind:currentChatName
             bind:chatContent
             bind:userId
-            {sendMessage}
-        />
-
-        <Sidebar
             bind:newUserId
-            bind:chatContent
-            bind:currentChatId
+            {sendMessage}
             {addNewUser}
         />
     {/if}

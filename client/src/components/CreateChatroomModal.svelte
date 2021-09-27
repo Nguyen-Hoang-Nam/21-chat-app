@@ -28,7 +28,9 @@
         <button class="modal-button" type="submit">Submit</button>
     </form>
 
-    <button class="modal-exit" on:click={exitModal}>x</button>
+    <button class="modal-exit" on:click={exitModal}>
+        <img src="./images/exit.svg" class="modal-exit-icon" alt="Exit" />
+    </button>
 </div>
 
 <style>
@@ -46,6 +48,7 @@
 
     .modal {
         position: absolute;
+        z-index: 10;
         top: 0;
         left: 0;
         width: 100%;
@@ -55,11 +58,17 @@
 
     .modal-exit {
         position: absolute;
-        top: 70px;
+        top: 20px;
         right: 15px;
         color: red;
         font-weight: bold;
-        font-size: 20px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+    }
+
+    .modal-exit-icon {
+        width: 20px;
     }
 
     .modal-form {

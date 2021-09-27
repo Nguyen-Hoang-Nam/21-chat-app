@@ -58,14 +58,16 @@ public class ChatController {
     }
 
     @PostMapping(path = "/create")
-    public void create(
+    public ResponseEntity<String> create(
         @RequestHeader("Authorization") String requestToken,
         @RequestBody ChatCreateRequest chatCreateRequest
     ) {
         String token = getTokenFromRequest(requestToken);
         ChatDTO chatDTO = mapper.chatCreateRequestToChatDto(chatCreateRequest);
 
-        service.create(token, chatDTO);
+        String newChatId = service.create(token, chatDTO);
+
+        return new ResponseEntity<String>(newChatId, HttpStatus.OK);
     }
 
     @PostMapping(path = "/add-user/{chatId}")
@@ -114,8 +116,8 @@ public class ChatController {
             messageRequest
         );
 
-        service.addMessage(chatId, messageDTO);
+        MessageDTO newMessageDTO = service.addMessage(chatId, messageDTO);
 
-        template.convertAndSend("/topic/message." + chatId, messageDTO);
+        template.convertAndSend("/topic/message." + chatId, newMessageDTO);
     }
 }

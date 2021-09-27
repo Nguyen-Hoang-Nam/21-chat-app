@@ -5,6 +5,8 @@
     export let currentChatId;
     export let currentChatName;
 
+    export let listChatroomOrder;
+
     export let fetchChatContent;
 
     const newChatModal = () => {
@@ -22,34 +24,40 @@
     const changeChatroom = async (chatId) => {
         currentChatId = chatId;
 
-        await fetchChatContent();
+        await fetchChatContent(chatId);
         currentChatName = findCurrentChat(content, chatId).chatName;
     };
 </script>
 
 <div class="list-chatroom">
-    <div class="list-chatroom-option flex v-center">
-        <button class="list-chatroom-button" on:click={newChatModal}
-            >New chat</button
-        >
+    <div class="list-chatroom-option flex v-center h-right">
+        <button class="list-chatroom-button" on:click={newChatModal}>
+            <img
+                src="./images/add.svg"
+                alt="Add chatroom"
+                class="list-chatroom-add-icon"
+            />
+        </button>
     </div>
 
-    {#if content["userChatDTOs"] !== null}
-        {#each content["userChatDTOs"] as chat}
-            <div
-                class={chat.id === currentChatId
-                    ? "chatroom-item-choose chatroom-item"
-                    : "chatroom-item"}
-                on:click={() => changeChatroom(chat.id)}
-            >
-                <p class="chatroom-item-name">{chat.chatName}</p>
-                <p class="chatroom-item-message">
-                    {chat.lastUsername ? chat.lastUsername + ":" : ""}
-                    {chat.lastMessage ? chat.lastMessage : ""}
-                </p>
-            </div>
-        {/each}
-    {/if}
+    <div class="list-chatroom-container">
+        {#if listChatroomOrder !== null}
+            {#each listChatroomOrder as chat}
+                <div
+                    class={chat.id === currentChatId
+                        ? "chatroom-item-choose chatroom-item"
+                        : "chatroom-item"}
+                    on:click={() => changeChatroom(chat.id)}
+                >
+                    <p class="chatroom-item-name">{chat.chatName}</p>
+                    <p class="chatroom-item-message">
+                        {chat.lastUsername ? chat.lastUsername + ":" : ""}
+                        {chat.lastMessage ? chat.lastMessage : ""}
+                    </p>
+                </div>
+            {/each}
+        {/if}
+    </div>
 </div>
 
 <style>
@@ -61,19 +69,35 @@
         align-items: center;
     }
 
+    .h-right {
+        justify-content: flex-end;
+    }
+
     .list-chatroom {
         width: 300px;
         border-right: 1px solid #ddd;
     }
 
     .list-chatroom-option {
-        height: 30px;
+        height: 50px;
         border-bottom: 1px solid #ddd;
         padding-left: 15px;
         padding-right: 15px;
     }
 
+    .list-chatroom-container {
+        height: calc(100% - 51px);
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
     .list-chatroom-button {
+        padding: 2px;
+        cursor: pointer;
+        border: 1px solid #ddd;
+    }
+
+    .list-chatroom-add-icon {
         height: 20px;
     }
 
@@ -83,6 +107,7 @@
         padding: 10px 15px 10px 15px;
         border-bottom: 1px solid #ddd;
         height: 100px;
+        cursor: pointer;
     }
 
     .chatroom-item-choose {

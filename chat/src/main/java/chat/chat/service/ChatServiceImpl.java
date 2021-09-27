@@ -63,7 +63,7 @@ public class ChatServiceImpl implements IChatService {
     }
 
     @Override
-    public void create(String token, ChatDTO chatDTO) {
+    public String create(String token, ChatDTO chatDTO) {
         ChatEntity chatEntity = chatMapper.chatDtoToChatEntity(chatDTO);
 
         String userId = jwtUtil.parseToken(token);
@@ -100,6 +100,8 @@ public class ChatServiceImpl implements IChatService {
         userEntity.setUserChatEntities(userChatEntities);
 
         userRepository.save(userEntity);
+
+        return newChatId;
     }
 
     @Override
@@ -219,7 +221,7 @@ public class ChatServiceImpl implements IChatService {
     }
 
     @Override
-    public void addMessage(String chatId, MessageDTO messageDTO) {
+    public MessageDTO addMessage(String chatId, MessageDTO messageDTO) {
         ChatEntity chatEntity = chatRepository.findById(chatId).orElse(null);
         if (chatEntity == null) {
             throw new IllegalStateException("Chat room not found");
@@ -230,11 +232,19 @@ public class ChatServiceImpl implements IChatService {
             messageEntities = new ArrayList<MessageEntity>();
         }
 
-        MessageEntity messageEntity = messageMapper.messageDtoToMessageEntity(
-            messageDTO
+        MessageEntity messageEntity = new MessageEntity(
+            messageDTO.getUserId(),
+            messageDTO.getUsername(),
+            messageDTO.getContent()
         );
+
         messageEntities.add(messageEntity);
         chatEntity.setMessageEntities(messageEntities);
         chatRepository.save(chatEntity);
+
+        MessageDTO newMessageDTO = messageMapper.messageEntityToMessageDto(
+            messageEntity
+        );
+        return newMessageDTO;
     }
 }
