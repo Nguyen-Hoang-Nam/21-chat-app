@@ -1,4 +1,5 @@
 .git/
+dev.yml
 
 ### Svelte ###
 .DS_Store

@@ -1,13 +1,12 @@
 version: "3.4"
 
-x-database-config-data:
-  &mongo-connection-data
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: root
-      MONGO_INITDB_DATABASE: "chat_app"
-      MONGODB_USERNAME: "user"
-      MONGODB_PASSWORD: "pass"
+x-database-config-data: &mongo-connection-data
+  environment:
+    MONGO_INITDB_ROOT_USERNAME: root
+    MONGO_INITDB_ROOT_PASSWORD: root
+    MONGO_INITDB_DATABASE: "chat_app"
+    MONGODB_USERNAME: "user"
+    MONGODB_PASSWORD: "pass"
 
 services:
   mongo:
