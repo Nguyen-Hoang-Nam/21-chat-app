@@ -1,13 +1,11 @@
 # Spring Svelte Chat App
 
 Simple Spring Svelte chat app demo,
-supports create new a new chat room, add user to chat room
+supports feature such as create a new chat room, add user to a chat room
 
 ![User 1](https://raw.githubusercontent.com/Nguyen-Hoang-Nam/readme-image/main/spring-svelte-chat-app/user1.jpg)
 
 ![User 2](https://raw.githubusercontent.com/Nguyen-Hoang-Nam/readme-image/main/spring-svelte-chat-app/user2.jpg)
-
-![User 3](https://raw.githubusercontent.com/Nguyen-Hoang-Nam/readme-image/main/spring-svelte-chat-app/user3.jpg)
 
 ## TODO
 
@@ -15,7 +13,7 @@ supports create new a new chat room, add user to chat room
 - [ ] Subscribe connected users (online users) (#BE)
 - [ ] Subscribe seen users (count seen users) (#BE)
 - [ ] Subscribe typing users (#BE)
-- [ ] Toggle sidebar (#UI)
+- [x] Toggle sidebar (#UI)
 - [ ] Merge message of same user (#UI)
 - [ ] Type multiple line message (#UI)
 - [ ] Support avatar (#BE, #FE)
