@@ -1,5 +1,6 @@
 package chat.chat.model.entity;
 
+import java.util.Date;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 
@@ -11,21 +12,30 @@ public class MessageEntity {
     private String userId;
     private String username;
     private String content;
+    private String type;
+    private Date time;
+    private String originFilename;
 
-    public MessageEntity() {
-        this.id = new ObjectId().toString();
-    }
+    public MessageEntity() {}
 
     /**
      * @param userId
      * @param username
      * @param content
      */
-    public MessageEntity(String userId, String username, String content) {
+    public MessageEntity(
+        String userId,
+        String username,
+        String content,
+        String type,
+        Date time
+    ) {
         this.id = new ObjectId().toString();
         this.userId = userId;
         this.username = username;
         this.content = content;
+        this.type = type;
+        this.time = time;
     }
 
     /**
@@ -38,12 +48,60 @@ public class MessageEntity {
         String id,
         String userId,
         String username,
-        String content
+        String content,
+        String type,
+        Date time,
+        String originFilename
     ) {
         this.id = id;
         this.userId = userId;
         this.username = username;
         this.content = content;
+        this.type = type;
+        this.time = time;
+        this.originFilename = originFilename;
+    }
+
+    /**
+     * @return the originFilename
+     */
+    public String getOriginFilename() {
+        return originFilename;
+    }
+
+    /**
+     * @param originFilename the originFilename to set
+     */
+    public void setOriginFilename(String originFilename) {
+        this.originFilename = originFilename;
+    }
+
+    /**
+     * @return the type
+     */
+    public String getType() {
+        return type;
+    }
+
+    /**
+     * @param type the type to set
+     */
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    /**
+     * @return the time
+     */
+    public Date getTime() {
+        return time;
+    }
+
+    /**
+     * @param time the time to set
+     */
+    public void setTime(Date time) {
+        this.time = time;
     }
 
     /**

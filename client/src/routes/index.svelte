@@ -37,6 +37,8 @@
     const addNewMessage = async (message, chatId) => {
         const body = JSON.parse(message.body);
 
+        
+
         if (chatContent[chatId]) {
             if (chatContent[chatId]["messageDTOs"]) {
                 chatContent[chatId]["messageDTOs"].push(body);
@@ -78,6 +80,21 @@
         client.publish({
             destination: "/chat/message/" + chatId,
             body: JSON.stringify(instantMessage),
+        });
+    };
+
+    const uploadFile = async (file, chatId) => {
+        const formData = new FormData();
+
+        formData.append("file", file);
+
+        await fetch("http://localhost:8080/chat/upload/" + chatId, {
+            method: "POST",
+            mode: "cors",
+            headers: {
+                Authorization: "Bearer " + jwtToken,
+            },
+            body: formData,
         });
     };
 
@@ -273,6 +290,7 @@
             bind:chatContent
             bind:userId
             bind:newUserId
+            {uploadFile}
             {sendMessage}
             {addNewUser}
         />

@@ -14,9 +14,11 @@ import chat.chat.repository.IChatRepository;
 import chat.chat.repository.IUserRepository;
 import chat.chat.util.JwtUtil;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class ChatServiceImpl implements IChatService {
@@ -29,6 +31,8 @@ public class ChatServiceImpl implements IChatService {
 
     private IChatMapper chatMapper;
 
+    private IStorageService storage;
+
     private JwtUtil jwtUtil;
 
     /**
@@ -40,12 +44,14 @@ public class ChatServiceImpl implements IChatService {
         IUserRepository userRepository,
         IChatMapper chatMapper,
         IMessageMapper messageMapper,
+        IStorageService storage,
         JwtUtil jwtUtil
     ) {
         this.chatRepository = chatRepository;
         this.userRepository = userRepository;
         this.chatMapper = chatMapper;
         this.messageMapper = messageMapper;
+        this.storage = storage;
         this.jwtUtil = jwtUtil;
     }
 
@@ -83,8 +89,6 @@ public class ChatServiceImpl implements IChatService {
         chatEntity.setChatUserEntities(chatUserEntities);
         ChatEntity newChatEntity = chatRepository.save(chatEntity);
         String newChatId = newChatEntity.getId();
-
-        userEntity.setLastChatId(newChatId);
 
         UserChatEntity userChatEntity = new UserChatEntity(
             newChatId,
@@ -235,8 +239,59 @@ public class ChatServiceImpl implements IChatService {
         MessageEntity messageEntity = new MessageEntity(
             messageDTO.getUserId(),
             messageDTO.getUsername(),
-            messageDTO.getContent()
+            messageDTO.getContent(),
+            "text",
+            new Date()
         );
+
+        messageEntities.add(messageEntity);
+        chatEntity.setMessageEntities(messageEntities);
+        chatRepository.save(chatEntity);
+
+        MessageDTO newMessageDTO = messageMapper.messageEntityToMessageDto(
+            messageEntity
+        );
+        return newMessageDTO;
+    }
+
+    @Override
+    public MessageDTO addMessageFile(
+        String token,
+        MultipartFile file,
+        String chatId
+    ) {
+        ChatEntity chatEntity = chatRepository.findById(chatId).orElse(null);
+        if (chatEntity == null) {
+            throw new IllegalStateException("Chat room not found");
+        }
+
+        ArrayList<MessageEntity> messageEntities = chatEntity.getMessageEntities();
+        if (messageEntities == null) {
+            messageEntities = new ArrayList<MessageEntity>();
+        }
+
+        String userId = jwtUtil.parseToken(token);
+        UserEntity userEntity = userRepository.findUserById(userId);
+        MessageEntity messageEntity = new MessageEntity(
+            userId,
+            userEntity.getUsername(),
+            "",
+            "file",
+            new Date()
+        );
+
+        String originFilename = file.getOriginalFilename();
+        String[] originFilenameComponents = originFilename.split("\\.");
+
+        String filename =
+            chatId +
+            messageEntity.getId() +
+            "." +
+            originFilenameComponents[originFilenameComponents.length - 1];
+
+        storage.store(file, filename);
+        messageEntity.setContent(filename);
+        messageEntity.setOriginFilename(originFilename);
 
         messageEntities.add(messageEntity);
         chatEntity.setMessageEntities(messageEntities);

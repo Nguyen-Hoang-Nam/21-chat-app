@@ -2,7 +2,6 @@ package chat.chat.model.entity;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -11,13 +10,14 @@ public class UserEntity implements Serializable {
 
     @Id
     private String id;
+
     private String username;
     private String password;
     private ArrayList<UserChatEntity> userChatEntities;
-    private String lastChatId;
 
-    public UserEntity() {
-    }
+    private ArrayList<String> chatroomOrder;
+
+    public UserEntity() {}
 
     /**
      * @param username
@@ -26,6 +26,20 @@ public class UserEntity implements Serializable {
     public UserEntity(String username, String password) {
         this.username = username;
         this.password = password;
+    }
+
+    /**
+     * @return the chatroomOrder
+     */
+    public ArrayList<String> getChatroomOrder() {
+        return chatroomOrder;
+    }
+
+    /**
+     * @param chatroomOrder the chatroomOrder to set
+     */
+    public void setChatroomOrder(ArrayList<String> chatroomOrder) {
+        this.chatroomOrder = chatroomOrder;
     }
 
     /**
@@ -91,22 +105,9 @@ public class UserEntity implements Serializable {
     /**
      * @param userChatEntities the userChatEntities to set
      */
-    public void setUserChatEntities(ArrayList<UserChatEntity> userChatEntities) {
+    public void setUserChatEntities(
+        ArrayList<UserChatEntity> userChatEntities
+    ) {
         this.userChatEntities = userChatEntities;
     }
-
-    /**
-     * @return the lastChatId
-     */
-    public String getLastChatId() {
-        return lastChatId;
-    }
-
-    /**
-     * @param lastChatId the lastChatId to set
-     */
-    public void setLastChatId(String lastChatId) {
-        this.lastChatId = lastChatId;
-    }
-
 }

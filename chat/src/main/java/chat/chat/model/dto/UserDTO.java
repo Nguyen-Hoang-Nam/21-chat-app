@@ -1,27 +1,26 @@
 package chat.chat.model.dto;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
-
+import java.io.Serializable;
+import java.util.ArrayList;
 import org.springframework.data.annotation.Id;
 
 public class UserDTO implements Serializable {
 
     @Id
     private String id;
+
     private String username;
 
     @JsonProperty(access = Access.WRITE_ONLY)
     private String password;
 
     private ArrayList<UserChatDTO> userChatDTOs;
-    private String lastChatId;
 
-    public UserDTO() {
-    }
+    private ArrayList<String> chatroomOrder;
+
+    public UserDTO() {}
 
     /**
      * @param username
@@ -30,6 +29,20 @@ public class UserDTO implements Serializable {
     public UserDTO(String username, String password) {
         this.username = username;
         this.password = password;
+    }
+
+    /**
+     * @return the chatroomOrder
+     */
+    public ArrayList<String> getChatroomOrder() {
+        return chatroomOrder;
+    }
+
+    /**
+     * @param chatroomOrder the chatroomOrder to set
+     */
+    public void setChatroomOrder(ArrayList<String> chatroomOrder) {
+        this.chatroomOrder = chatroomOrder;
     }
 
     /**
@@ -44,20 +57,6 @@ public class UserDTO implements Serializable {
      */
     public void setUserChatDTOs(ArrayList<UserChatDTO> userChatDTOs) {
         this.userChatDTOs = userChatDTOs;
-    }
-
-    /**
-     * @return the lastChatId
-     */
-    public String getLastChatId() {
-        return lastChatId;
-    }
-
-    /**
-     * @param lastChatId the lastChatId to set
-     */
-    public void setLastChatId(String lastChatId) {
-        this.lastChatId = lastChatId;
     }
 
     /**
@@ -112,5 +111,4 @@ public class UserDTO implements Serializable {
     public void setPassword(String password) {
         this.password = password;
     }
-
 }

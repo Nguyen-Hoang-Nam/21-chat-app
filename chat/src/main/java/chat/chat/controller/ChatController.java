@@ -7,7 +7,9 @@ import chat.chat.model.request.ChatAddUserRequest;
 import chat.chat.model.request.ChatCreateRequest;
 import chat.chat.model.request.MessageRequest;
 import chat.chat.service.IChatService;
+import chat.chat.service.IStorageService;
 import java.util.List;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -20,7 +22,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping(path = "/chat")
@@ -33,6 +38,8 @@ public class ChatController {
 
     private SimpMessagingTemplate template;
 
+    private IStorageService storage;
+
     /**
      * @param service
      * @param mapper
@@ -40,11 +47,13 @@ public class ChatController {
     public ChatController(
         IChatService service,
         IChatMapper mapper,
-        SimpMessagingTemplate template
+        SimpMessagingTemplate template,
+        IStorageService storage
     ) {
         this.service = service;
         this.mapper = mapper;
         this.template = template;
+        this.storage = storage;
     }
 
     private String getTokenFromRequest(String requestToken) {
@@ -58,6 +67,7 @@ public class ChatController {
     }
 
     @PostMapping(path = "/create")
+    @ResponseBody
     public ResponseEntity<String> create(
         @RequestHeader("Authorization") String requestToken,
         @RequestBody ChatCreateRequest chatCreateRequest
@@ -71,6 +81,7 @@ public class ChatController {
     }
 
     @PostMapping(path = "/add-user/{chatId}")
+    @ResponseBody
     public ResponseEntity<String> addUserById(
         @RequestHeader("Authorization") String requestToken,
         @PathVariable String chatId,
@@ -86,6 +97,7 @@ public class ChatController {
     }
 
     @GetMapping(path = "/get-chat/{chatId}")
+    @ResponseBody
     public ResponseEntity<ChatDTO> getChatById(
         @RequestHeader("Authorization") String requestToken,
         @PathVariable String chatId
@@ -97,6 +109,7 @@ public class ChatController {
     }
 
     @GetMapping(path = "/old-message/{chatId}")
+    @ResponseBody
     public ResponseEntity<List<MessageDTO>> getOldMessages(
         @RequestHeader("Authorization") String requestToken,
         @PathVariable String chatId
@@ -117,6 +130,27 @@ public class ChatController {
         );
 
         MessageDTO newMessageDTO = service.addMessage(chatId, messageDTO);
+
+        template.convertAndSend("/topic/message." + chatId, newMessageDTO);
+    }
+
+    @GetMapping("/files/{filename:.+}")
+    @ResponseBody
+    public ResponseEntity<Resource> getFile(@PathVariable String filename) {
+        Resource file = storage.load(filename);
+
+        return new ResponseEntity<Resource>(file, HttpStatus.OK);
+    }
+
+    @PostMapping("/upload/{chatId}")
+    public void handleFileUpload(
+        @RequestHeader("Authorization") String requestToken,
+        @RequestParam("file") MultipartFile file,
+        @PathVariable String chatId
+    ) {
+        String token = getTokenFromRequest(requestToken);
+
+        MessageDTO newMessageDTO = service.addMessageFile(token, file, chatId);
 
         template.convertAndSend("/topic/message." + chatId, newMessageDTO);
     }

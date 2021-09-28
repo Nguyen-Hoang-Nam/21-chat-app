@@ -1,8 +1,11 @@
 <script>
     import Sidebar from "./Sidebar.svelte";
+    import ChatMessage from "./ChatMessage.svelte";
 
     export let currentMessage;
     export let currentChatName;
+
+    export let uploadFile;
 
     export let chatContent;
     export let currentChatId;
@@ -14,6 +17,13 @@
     export let addNewUser;
 
     let showSidebar = true;
+
+    let fileinput;
+
+    const onFileSelected = async (e) => {
+        const file = e.target.files[0];
+        await uploadFile(file, currentChatId);
+    };
 
     const isEmpty = (obj) => {
         for (let _ in obj) return false;
@@ -29,6 +39,7 @@
 <div class={!isEmpty(chatContent) ? "chatroom" : "disable"}>
     <div class="chatroom-header">
         <div class="chatroom-title">{currentChatName}</div>
+
         <div class="chatroom-header-options flex v-center">
             <button
                 class="chatroom-sidebar-toggle flex v-center h-center"
@@ -45,34 +56,34 @@
 
     <div class="chatroom-container flex">
         <div class="chatroom-main flex">
-            <div class="chatroom-content">
-                {#if !isEmpty(chatContent) && chatContent[currentChatId] && chatContent[currentChatId]["messageDTOs"]}
-                    {#each chatContent[currentChatId]["messageDTOs"] as chat}
-                        <div
-                            class={chat.userId === userId
-                                ? "flex h-right v-center my-message"
-                                : "flex v-center"}
-                        >
-                            {#if chat.userId !== userId}
-                                <div class="message-username">
-                                    {chat.username}:
-                                </div>
-                            {/if}
-
-                            <div class="message">
-                                {chat.content}
-                            </div>
-                        </div>
-                    {/each}
-                {/if}
-            </div>
+            <ChatMessage bind:chatContent bind:currentChatId bind:userId />
 
             <div class="chatroom-input flex">
+                <input
+                    class="disable"
+                    type="file"
+                    accept=".jpg, .jpeg, .png"
+                    on:change={(e) => onFileSelected(e)}
+                    bind:this={fileinput}
+                />
+
+                <button
+                    class="chatroom-input-upload flex v-center h-center"
+                    on:click={() => fileinput.click()}
+                >
+                    <img
+                        src="./images/clip.svg"
+                        class="chatroom-input-upload-icon"
+                        alt="Upload file"
+                    />
+                </button>
+
                 <input
                     bind:value={currentMessage}
                     class="chatroom-input-typing"
                     type="text"
                 />
+
                 <button
                     class="chatroom-input-send flex v-center h-center"
                     on:click={() => sendMessage(currentChatId)}
@@ -107,10 +118,6 @@
 
     .h-center {
         justify-content: center;
-    }
-
-    .h-right {
-        justify-content: flex-end;
     }
 
     .chatroom {
@@ -161,13 +168,6 @@
         height: 20px;
     }
 
-    .chatroom-content {
-        flex-grow: 1;
-        padding: 20px;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-
     .chatroom-input {
         padding-left: 15px;
         padding-right: 15px;
@@ -200,26 +200,17 @@
         width: 20px;
     }
 
-    .message {
-        padding: 10px 20px;
-        font-size: 15px;
+    .chatroom-input-upload {
+        height: 29px;
+        width: 29px;
+        margin-right: 20px;
         border: 1px solid #ddd;
-        border-radius: 25px;
-        background: #eee;
-        margin-bottom: 10px;
-        max-width: 60%;
+        cursor: pointer;
+        border-radius: 100%;
     }
 
-    .message-username {
-        font-size: 15px;
-        padding-right: 10px;
-        margin-bottom: 10px;
-    }
-
-    .my-message .message {
-        background: #0084ff;
-        color: white;
-        border: none;
+    .chatroom-input-upload-icon {
+        height: 20px;
     }
 
     .disable {

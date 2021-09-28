@@ -10,10 +10,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 
-@Mapper(
-    componentModel = "spring",
-    uses = { IMessageMapper.class, IChatUserMapper.class }
-)
+@Mapper(componentModel = "spring", uses = { IChatUserMapper.class })
 public interface IChatMapper {
     @Mappings(
         {
