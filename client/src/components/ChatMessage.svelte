@@ -1,54 +1,54 @@
 <script>
-    import { afterUpdate } from "svelte";
-    export let chatContent;
-    export let currentChatId;
+import { afterUpdate } from "svelte";
+export let chatContent;
+export let currentChatId;
 
-    export let userId;
+export let userId;
 
-    let chatMessage;
+let chatMessage;
 
-    const checkFileType = (filename) => {
-        const filenameComponents = filename.split(".");
-        const fileType = filenameComponents[filenameComponents.length - 1];
+const checkFileType = (filename) => {
+    const filenameComponents = filename.split(".");
+    const fileType = filenameComponents[filenameComponents.length - 1];
 
-        return fileType;
-    };
+    return fileType;
+};
 
-    const isDisplay = (filename) => {
-        const imageType = ["jpg", "jpeg", "png"];
-        const fileType = checkFileType(filename);
+const isDisplay = (filename) => {
+    const imageType = ["jpg", "jpeg", "png"];
+    const fileType = checkFileType(filename);
 
-        if (imageType.includes(fileType)) {
-            return true;
-        }
-
-        return false;
-    };
-
-    const dateToHours = (timeStr) => {
-        const time = new Date(timeStr);
-        let result = "";
-
-        let hours = time.getHours();
-        let day = "AM";
-        if (hours > 12) {
-            hours = hours - 12;
-            day = "PM";
-        }
-
-        result = hours + ":" + time.getSeconds() + " " + day;
-        return result;
-    };
-
-    const isEmpty = (obj) => {
-        for (let _ in obj) return false;
-
+    if (imageType.includes(fileType)) {
         return true;
-    };
+    }
 
-    afterUpdate(() => {
-        chatMessage.scrollTop = chatMessage.scrollHeight;
-    });
+    return false;
+};
+
+const dateToHours = (timeStr) => {
+    const time = new Date(timeStr);
+    let result = "";
+
+    let hours = time.getHours();
+    let day = "AM";
+    if (hours > 12) {
+        hours = hours - 12;
+        day = "PM";
+    }
+
+    result = hours + ":" + time.getSeconds() + " " + day;
+    return result;
+};
+
+const isEmpty = (obj) => {
+    for (let _ in obj) return false;
+
+    return true;
+};
+
+afterUpdate(() => {
+    chatMessage.scrollTop = chatMessage.scrollHeight;
+});
 </script>
 
 <div class="chatroom-content" bind:this={chatMessage}>
@@ -95,66 +95,66 @@
 </div>
 
 <style>
-    .flex {
-        display: flex;
-    }
+.flex {
+    display: flex;
+}
 
-    .v-center {
-        align-items: center;
-    }
+.v-center {
+    align-items: center;
+}
 
-    .h-right {
-        justify-content: flex-end;
-    }
+.h-right {
+    justify-content: flex-end;
+}
 
-    .chatroom-content {
-        flex-grow: 1;
-        padding: 0 20px 20px 20px;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
+.chatroom-content {
+    flex-grow: 1;
+    padding: 0 20px 20px 20px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
 
-    .message {
-        margin-bottom: 1px;
-    }
+.message {
+    margin-bottom: 1px;
+}
 
-    .message-text {
-        padding: 10px 20px;
-        font-size: 15px;
-        background: #eee;
-        max-width: 60%;
-    }
+.message-text {
+    padding: 10px 20px;
+    font-size: 15px;
+    background: #eee;
+    max-width: 60%;
+}
 
-    .message-image {
-        max-width: 30%;
-        max-height: 30%;
-    }
+.message-image {
+    max-width: 30%;
+    max-height: 30%;
+}
 
-    .border-top-left-radius .message {
-        border-top-left-radius: 15px;
-    }
+.border-top-left-radius .message {
+    border-top-left-radius: 15px;
+}
 
-    .border-top-right-radius .message {
-        border-top-right-radius: 15px;
-    }
+.border-top-right-radius .message {
+    border-top-right-radius: 15px;
+}
 
-    .border-bottom-right-radius .message {
-        border-bottom-right-radius: 15px;
-    }
+.border-bottom-right-radius .message {
+    border-bottom-right-radius: 15px;
+}
 
-    .border-bottom-left-radius .message {
-        border-bottom-left-radius: 15px;
-    }
+.border-bottom-left-radius .message {
+    border-bottom-left-radius: 15px;
+}
 
-    .message-username {
-        padding-top: 20px;
-        font-size: 14px;
-        color: #888;
-    }
+.message-username {
+    padding-top: 20px;
+    font-size: 14px;
+    color: #888;
+}
 
-    .my-message .message {
-        background: #0084ff;
-        color: white;
-        border: none;
-    }
+.my-message .message {
+    background: #0084ff;
+    color: white;
+    border: none;
+}
 </style>

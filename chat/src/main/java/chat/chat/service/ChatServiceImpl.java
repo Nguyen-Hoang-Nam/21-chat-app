@@ -196,7 +196,7 @@ public class ChatServiceImpl implements IChatService {
             throw new IllegalStateException("User not found in chatroom");
         }
 
-        List<MessageEntity> messageEntities = chatEntity.getMessageEntities();
+        List<MessageEntity> messageEntities = chatRepository.findMessages(chatId, 0, 20);
         List<MessageDTO> messageDTOs = messageMapper.messageEntitiesToMessageDtos(
             messageEntities
         );
