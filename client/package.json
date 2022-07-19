@@ -12,7 +12,7 @@
         "@stomp/stompjs": "^6.1.2",
         "compression": "^1.7.1",
         "polka": "next",
-        "sirv": "^1.0.0"
+        "sirv": "1.0.19"
     },
     "devDependencies": {
         "file-loader": "^6.0.0",
