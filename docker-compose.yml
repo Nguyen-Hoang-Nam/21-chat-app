@@ -10,7 +10,7 @@ x-database-config-data: &mongo-connection-data
 
 services:
   mongo:
-    image: mongo:5.0.3
+    image: mongo:5.0.9
     ports:
       - 27017:27017
     <<: *mongo-connection-data
